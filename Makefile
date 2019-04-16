@@ -40,9 +40,17 @@ rebuild-examples:
 fix:
 	docker run -v $(shell pwd):/compiler ircmaxell/php-compiler:16.04-dev php vendor/bin/php-cs-fixer fix --allow-risky=yes
 
+.PHONY: docker-phan
+docker-phan:
+	docker run -v $(shell pwd):/compiler ircmaxell/php-compiler:16.04 php vendor/bin/phan
+
 .PHONY: phan
 phan:
 	docker run -v $(shell pwd):/compiler ircmaxell/php-compiler:16.04-dev php vendor/bin/phan
+
+.PHONY: docker-test
+docker-test: rebuild-changed
+	docker run -v $(shell pwd):/compiler ircmaxell/php-compiler:16.04 php vendor/bin/phpunit
 
 .PHONY: test
 test: rebuild-changed

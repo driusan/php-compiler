@@ -7,8 +7,8 @@ jobs:
                         - checkout
                         - run: make docker-build
                         - run: make build
-                        - run: make phan
-                        - run: make test
+                        - run: make docker-phan
+                        - run: make docker-test
                         - run: |
                               if [ "${CIRCLE_BRANCH}" == "master" ]; then 
                                   docker login -u $DOCKER_USER -p $DOCKER_PASS
