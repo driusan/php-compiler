@@ -1,17 +1,50 @@
-version: 2
+version: 2.1
 
 jobs:
-        build:
-                machine: true
-                steps:
-                        - checkout
-                        - run: make docker-build-clean
-                        - run: make build
-                        - run: make phan
-                        - run: make test
-                        - run: |
-                              if [ "${CIRCLE_BRANCH}" == "master" ]; then 
-                                  docker login -u $DOCKER_USER -p $DOCKER_PASS
-                                  docker push ircmaxell/php-compiler:16.04-dev
-                                  docker push ircmaxell/php-compiler:16.04
-                              fi
+    buildenv:
+        machine: true
+        steps:
+            - checkout
+            - run: make docker-build-clean
+    buildcode:
+        machine: true
+        steps:
+            - run: make build
+
+    phan:
+        machine: true
+        steps:
+            - run: make phan
+
+    phpunit:
+        machine: true
+        steps:
+            - run: make test
+
+    deploy:
+        machine: true
+        steps:
+              - run: |
+                  if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                      docker login -u $DOCKER_USER -p $DOCKER_PASS
+                      docker push ircmaxell/php-compiler:16.04-dev
+                      docker push ircmaxell/php-compiler:16.04
+                  fi
+workflows:
+    version: 2
+    build_and_test:
+        jobs:
+            - buildenv
+            - buildcode:
+                requires:
+                    - buildenv
+            - phan:
+                requires:
+                    - buildcode
+            - phpunit:
+                requires:
+                    - buildcode
+            - deploy:
+                requires:
+                    - phpunit
+                    - phan
