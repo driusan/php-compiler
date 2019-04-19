@@ -6,30 +6,44 @@ jobs:
         steps:
             - checkout
             - run: make docker-build-clean
+            - persist_to_workspace:
+                    root: .
+                    paths: .
     buildcode:
         machine: true
         steps:
+            - attach_workspace:
+                    at: .
             - run: make build
+            - persist_to_workspace:
+                    root: .
+                    paths: .
 
     phan:
         machine: true
         steps:
+            - attach_workspace:
+                    at: .
             - run: make phan
 
     phpunit:
         machine: true
         steps:
+            - attach_workspace:
+                    at: .
             - run: make test
 
     deploy:
         machine: true
         steps:
-              - run: |
-                  if [ "${CIRCLE_BRANCH}" == "master" ]; then
-                      docker login -u $DOCKER_USER -p $DOCKER_PASS
-                      docker push ircmaxell/php-compiler:16.04-dev
-                      docker push ircmaxell/php-compiler:16.04
-                  fi
+            - attach_workspace:
+                    at: .
+            - run: |
+                if [ "${CIRCLE_BRANCH}" == "master" ]; then
+                    docker login -u $DOCKER_USER -p $DOCKER_PASS
+                    docker push ircmaxell/php-compiler:16.04-dev
+                    docker push ircmaxell/php-compiler:16.04
+                fi
 workflows:
     version: 2
     build_and_test:
